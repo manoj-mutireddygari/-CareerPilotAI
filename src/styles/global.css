@@ -1,0 +1,111 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  background: #050505;
+  font-synthesis: none;
+  text-rendering: geometricPrecision;
+  -webkit-font-smoothing: antialiased;
+  --glass: rgba(255, 255, 255, 0.08);
+  --glass-strong: rgba(255, 255, 255, 0.14);
+  --line: rgba(255, 255, 255, 0.14);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: auto;
+}
+
+body {
+  min-width: 320px;
+  margin: 0;
+  overflow-x: hidden;
+  background:
+    radial-gradient(circle at 20% 10%, rgba(80, 227, 194, 0.18), transparent 28rem),
+    radial-gradient(circle at 80% 0%, rgba(255, 122, 61, 0.16), transparent 30rem),
+    linear-gradient(135deg, #050505 0%, #10100e 42%, #07120f 100%);
+  color: #f7f4ee;
+  font-family: Manrope, sans-serif;
+}
+
+button,
+a,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+::selection {
+  background: rgba(80, 227, 194, 0.32);
+  color: #ffffff;
+}
+
+.glass {
+  border: 1px solid var(--line);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0.04));
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(22px);
+}
+
+.premium-grid {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.055) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.9), transparent);
+}
+
+.aurora {
+  background:
+    linear-gradient(115deg, rgba(80, 227, 194, 0.36), transparent 34%),
+    linear-gradient(215deg, rgba(255, 122, 61, 0.26), transparent 32%),
+    linear-gradient(315deg, rgba(246, 196, 69, 0.22), transparent 28%),
+    linear-gradient(45deg, rgba(143, 215, 255, 0.18), transparent 28%);
+  filter: blur(34px) saturate(150%);
+}
+
+.text-balance {
+  text-wrap: balance;
+}
+
+.dashboard-scroll::-webkit-scrollbar,
+body::-webkit-scrollbar {
+  width: 10px;
+}
+
+.dashboard-scroll::-webkit-scrollbar-thumb,
+body::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+}
+
+.react-flow__handle {
+  opacity: 0;
+}
+
+.console-line {
+  opacity: 0;
+  animation: consoleIn 0.45s ease forwards;
+}
+
+@keyframes consoleIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
