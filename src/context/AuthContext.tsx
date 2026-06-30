@@ -19,6 +19,15 @@ interface MockUser {
   displayName: string | null;
 }
 
+function createDemoUser(email: string) {
+  const normalizedEmail = email.trim().toLowerCase();
+  return {
+    uid: `demo-user:${normalizedEmail}`,
+    email: normalizedEmail,
+    displayName: 'Demo User'
+  };
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | MockUser | null>(null);
   const [loading, setLoading] = useState(true);
@@ -26,7 +35,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!hasFirebaseConfig) {
       const email = localStorage.getItem('careerpilot_demo_user');
-      if (email) setUser({ uid: 'demo-user', email, displayName: 'Demo User' });
+      if (email) setUser(createDemoUser(email));
       setLoading(false);
       return;
     }
@@ -44,7 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login: async (email, password) => {
         if (!hasFirebaseConfig) {
           localStorage.setItem('careerpilot_demo_user', email);
-          setUser({ uid: 'demo-user', email, displayName: 'Demo User' });
+          setUser(createDemoUser(email));
           return;
         }
         await signInWithEmailAndPassword(auth, email, password);
@@ -52,7 +61,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       register: async (email, password) => {
         if (!hasFirebaseConfig) {
           localStorage.setItem('careerpilot_demo_user', email);
-          setUser({ uid: 'demo-user', email, displayName: 'Demo User' });
+          setUser(createDemoUser(email));
           return;
         }
         await createUserWithEmailAndPassword(auth, email, password);
