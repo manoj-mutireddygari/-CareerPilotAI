@@ -23,6 +23,8 @@ export async function runAutomation(request: AutomationRequest): Promise<Automat
   const started = Date.now();
   const errors: string[] = [];
   const userId = request.userId || 'demo-user';
+  const matchThreshold = 80;
+  const fallbackMatchCount = 3;
 
   try {
     const userDocument = await getDocument<UserDocument>('users', userId);
@@ -37,10 +39,17 @@ export async function runAutomation(request: AutomationRequest): Promise<Automat
     const existingKeys = new Set(existingMatchedJobs.map((job) => jobKey(job as { applyLink?: string; company?: string; role?: string })));
     const freshJobs = jobs.filter((job) => !existingKeys.has(jobKey(job)));
     const matches = await Promise.all(freshJobs.map(async (job) => ({ job, match: await matchJobWithAi(profile, job) })));
-    const matchedJobs = matches.filter(({ match }) => match.matchScore >= 80).sort((a, b) => b.match.matchScore - a.match.matchScore);
-    const keywordGuides = await Promise.all(matchedJobs.map(({ job }) => generateAtsResume(profile, job)));
-    const generatedEmail = await generateEmail(matchedJobs);
-    const emailResult = matchedJobs.length
+    const matchedJobs =
+      matches.filter(({ match }) => match.matchScore >= matchThreshold).sort((a, b) => b.match.matchScore - a.match.matchScore) ||
+      [];
+
+    const selectedMatches =
+      matchedJobs.length > 0
+        ? matchedJobs
+        : matches.sort((a, b) => b.match.matchScore - a.match.matchScore).slice(0, fallbackMatchCount);
+    const keywordGuides = await Promise.all(selectedMatches.map(({ job }) => generateAtsResume(profile, job)));
+    const generatedEmail = await generateEmail(selectedMatches);
+    const emailResult = selectedMatches.length
       ? await sendCareerEmail(
           request.recipientEmail,
           generatedEmail.subject,
@@ -50,8 +59,8 @@ export async function runAutomation(request: AutomationRequest): Promise<Automat
       : { skipped: true, reason: 'No new matched jobs to email' };
 
     await Promise.all([
-      ...matchedJobs.map(({ job, match }) => saveCollectionItem('matched_jobs', { userId, ...job, ...match })),
-      ...keywordGuides.map((content, index) => saveCollectionItem('resume_versions', { userId, content, type: 'ats-keyword-guide', jobId: matchedJobs[index]?.job.id })),
+      ...selectedMatches.map(({ job, match }) => saveCollectionItem('matched_jobs', { userId, ...job, ...match })),
+      ...keywordGuides.map((content, index) => saveCollectionItem('resume_versions', { userId, content, type: 'ats-keyword-guide', jobId: selectedMatches[index]?.job.id })),
       saveCollectionItem('emails', {
         userId,
         to: request.recipientEmail,
@@ -66,7 +75,7 @@ export async function runAutomation(request: AutomationRequest): Promise<Automat
       endedAt: new Date().toISOString(),
       durationMs: Date.now() - started,
       jobsRetrieved: jobs.length,
-      jobsMatched: matchedJobs.length,
+      jobsMatched: selectedMatches.length,
       resumesGenerated: keywordGuides.length,
       emailsSent: 'skipped' in emailResult ? 0 : 1,
       errors
