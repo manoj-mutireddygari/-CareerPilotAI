@@ -14,8 +14,14 @@ jobsRouter.get('/matched', async (req, res) => {
   const jobs = await listCollectionWhere('matched_jobs', 'userId', userId, 100);
   const seen = new Set<string>();
   const uniqueJobs = jobs.filter((job) => {
-    const record = job as { applyLink?: string; company?: string; role?: string };
-    const key = (record.applyLink || `${record.company || ''}-${record.role || ''}`).trim().toLowerCase();
+    const record = job as { id?: string; applyLink?: string; company?: string; role?: string; location?: string };
+    const key = (
+      record.id ||
+      record.applyLink ||
+      `${record.company || ''}-${record.role || ''}-${record.location || ''}`
+    )
+      .trim()
+      .toLowerCase();
     if (seen.has(key)) return false;
     seen.add(key);
     return true;

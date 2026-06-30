@@ -9,7 +9,14 @@ interface UserDocument {
 }
 
 function jobKey(job: { applyLink?: string; company?: string; role?: string }) {
-  return (job.applyLink || `${job.company || ''}-${job.role || ''}`).trim().toLowerCase();
+  const record = job as { id?: string; location?: string };
+  return (
+    record.id ||
+    job.applyLink ||
+    `${job.company || ''}-${job.role || ''}-${record.location || ''}`
+  )
+    .trim()
+    .toLowerCase();
 }
 
 export async function runAutomation(request: AutomationRequest): Promise<AutomationRunResult> {
