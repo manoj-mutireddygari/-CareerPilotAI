@@ -37,7 +37,8 @@ export function PipelineRunnerModal({ open, runSignal, onClose }: PipelineRunner
 
     try {
       const userId = user?.uid || 'demo-user';
-      const selectedId = localStorage.getItem('careerpilot_selected_automation_id') || '';
+      const selectedAutomationKey = `careerpilot_selected_automation_id:${userId}`;
+      const selectedId = localStorage.getItem(selectedAutomationKey) || '';
       const saved = await fetchSavedAutomations(userId);
       const automation = saved.automations.find((item) => item.id === selectedId) || saved.automations[0];
 
@@ -45,7 +46,7 @@ export function PipelineRunnerModal({ open, runSignal, onClose }: PipelineRunner
         throw new Error('Save an automation first, then run it from the dashboard.');
       }
 
-      localStorage.setItem('careerpilot_selected_automation_id', automation.id);
+      localStorage.setItem(selectedAutomationKey, automation.id);
       const automationPromise = runSavedAutomation(userId, automation.id);
 
       for (const [id, detail] of runSteps) {

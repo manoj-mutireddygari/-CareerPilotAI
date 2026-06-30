@@ -1,9 +1,15 @@
 import { Router } from 'express';
-import { listCollection } from '../services/storage.service';
+import { listCollectionWhere } from '../services/storage.service';
 
 export const emailsRouter = Router();
 
-emailsRouter.get('/', async (_req, res) => {
-  const emails = await listCollection('emails', 50);
+emailsRouter.get('/', async (req, res) => {
+  const userId = String(req.query.userId || '');
+  if (!userId) {
+    res.status(400).json({ error: 'userId is required' });
+    return;
+  }
+
+  const emails = await listCollectionWhere('emails', 'userId', userId, 50);
   res.json({ emails });
 });

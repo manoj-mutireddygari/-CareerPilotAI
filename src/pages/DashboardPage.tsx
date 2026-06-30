@@ -4,6 +4,7 @@ import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'rec
 import { AgentConsole } from '../components/dashboard/AgentConsole';
 import { JobCard } from '../components/dashboard/JobCard';
 import { MetricCard } from '../components/dashboard/MetricCard';
+import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { fetchEmails, fetchLogs, fetchMatchedJobs, fetchResumeVersions } from '../lib/api';
 import type { AutomationLog, JobMatch } from '../types/domain';
@@ -16,14 +17,18 @@ interface DashboardState {
 }
 
 export function DashboardPage() {
+  const { user } = useAuth();
   const { notify } = useToast();
   const [state, setState] = useState<DashboardState>({ logs: [], jobs: [], resumeVersions: [], emails: [] });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let mounted = true;
+    if (!user?.uid) return;
 
-    Promise.all([fetchLogs(), fetchMatchedJobs(), fetchResumeVersions(), fetchEmails()])
+    let mounted = true;
+    const userId = user.uid;
+
+    Promise.all([fetchLogs(userId), fetchMatchedJobs(userId), fetchResumeVersions(userId), fetchEmails(userId)])
       .then(([logs, jobs, resumeVersions, emails]) => {
         if (!mounted) return;
         setState({ logs: logs.logs, jobs: jobs.jobs, resumeVersions: resumeVersions.versions, emails: emails.emails });
@@ -34,7 +39,7 @@ export function DashboardPage() {
     return () => {
       mounted = false;
     };
-  }, [notify]);
+  }, [notify, user?.uid]);
 
   const latestLog = state.logs[0];
   const chartData = state.logs.slice(0, 7).reverse().map((log, index) => ({

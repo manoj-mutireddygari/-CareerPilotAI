@@ -27,17 +27,26 @@ export function AutomationPage() {
   const [parseStatus, setParseStatus] = useState('Waiting for PDF upload');
   const [savedAutomations, setSavedAutomations] = useState<SavedAutomation[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [selectedId, setSelectedId] = useState(() => localStorage.getItem('careerpilot_selected_automation_id') || '');
+  const [selectedId, setSelectedId] = useState('');
 
   const userId = user?.uid || 'demo-user';
+  const selectedAutomationKey = `careerpilot_selected_automation_id:${userId}`;
 
   const loadAutomations = async () => {
     try {
       const response = await fetchSavedAutomations(userId);
       setSavedAutomations(response.automations);
-      if (!selectedId && response.automations[0]) {
+      const storedSelectedId = localStorage.getItem(selectedAutomationKey) || '';
+      const storedAutomationExists = response.automations.some((automation) => automation.id === storedSelectedId);
+
+      if (storedAutomationExists) {
+        setSelectedId(storedSelectedId);
+      } else if (response.automations[0]) {
         setSelectedId(response.automations[0].id);
-        localStorage.setItem('careerpilot_selected_automation_id', response.automations[0].id);
+        localStorage.setItem(selectedAutomationKey, response.automations[0].id);
+      } else {
+        setSelectedId('');
+        localStorage.removeItem(selectedAutomationKey);
       }
     } catch (error) {
       notify('error', error instanceof Error ? error.message : 'Unable to load saved automations.');
@@ -95,7 +104,7 @@ export function AutomationPage() {
         const id = editingId || ('id' in response ? response.id : '');
         if (id) {
           setSelectedId(id);
-          localStorage.setItem('careerpilot_selected_automation_id', id);
+          localStorage.setItem(selectedAutomationKey, id);
         }
         setEditingId(null);
         notify('success', 'duplicate' in response && response.duplicate ? 'This automation already exists, so I selected it.' : editingId ? 'Automation updated.' : 'Automation saved.');
@@ -108,7 +117,7 @@ export function AutomationPage() {
   const handleEdit = (automation: SavedAutomation) => {
     setEditingId(automation.id);
     setSelectedId(automation.id);
-    localStorage.setItem('careerpilot_selected_automation_id', automation.id);
+    localStorage.setItem(selectedAutomationKey, automation.id);
     setAutomationName(automation.name || 'Daily AI Career Search');
     setRecipientEmail(automation.recipientEmail);
     setDomains(automation.domains.join(', '));
@@ -123,7 +132,7 @@ export function AutomationPage() {
     try {
       await deleteSavedAutomation(id);
       if (selectedId === id) {
-        localStorage.removeItem('careerpilot_selected_automation_id');
+        localStorage.removeItem(selectedAutomationKey);
         setSelectedId('');
       }
       if (editingId === id) setEditingId(null);
@@ -138,7 +147,7 @@ export function AutomationPage() {
 
   const handleSelect = (id: string) => {
     setSelectedId(id);
-    localStorage.setItem('careerpilot_selected_automation_id', id);
+    localStorage.setItem(selectedAutomationKey, id);
     notify('success', 'Selected automation will run from the dashboard button.');
   };
 

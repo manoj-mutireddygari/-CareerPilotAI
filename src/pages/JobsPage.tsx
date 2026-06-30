@@ -1,20 +1,24 @@
 import { useEffect, useState } from 'react';
 import { JobCard } from '../components/dashboard/JobCard';
+import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { fetchMatchedJobs } from '../lib/api';
 import type { JobMatch } from '../types/domain';
 
 export function JobsPage() {
+  const { user } = useAuth();
   const { notify } = useToast();
   const [jobs, setJobs] = useState<JobMatch[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchMatchedJobs()
+    if (!user?.uid) return;
+
+    fetchMatchedJobs(user.uid)
       .then((response) => setJobs(response.jobs))
       .catch((error) => notify('error', error instanceof Error ? error.message : 'Unable to load matched jobs.'))
       .finally(() => setLoading(false));
-  }, [notify]);
+  }, [notify, user?.uid]);
 
   return (
     <div className="space-y-5 pb-20">

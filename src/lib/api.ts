@@ -101,18 +101,18 @@ export function deleteSavedAutomation(id: string) {
   return request<{ ok: true }>(`/automation/settings/${id}`, { method: 'DELETE' });
 }
 
-export function fetchLogs() {
-  return request<{ logs: AutomationLog[] }>('/logs');
+export function fetchLogs(userId: string) {
+  return request<{ logs: AutomationLog[] }>(`/logs?userId=${encodeURIComponent(userId)}`);
 }
 
-export function fetchMatchedJobs() {
-  return request<{ jobs: JobMatch[] }>('/jobs/matched');
+export function fetchMatchedJobs(userId: string) {
+  return request<{ jobs: JobMatch[] }>(`/jobs/matched?userId=${encodeURIComponent(userId)}`);
 }
 
-export function fetchResumeVersions() {
-  return request<{ versions: Array<Record<string, unknown>> }>('/resume-versions');
+export function fetchResumeVersions(userId: string) {
+  return request<{ versions: Array<Record<string, unknown>> }>(`/resume-versions?userId=${encodeURIComponent(userId)}`);
 }
 
-export function fetchEmails() {
-  return request<{ emails: Array<Record<string, unknown>> }>('/emails');
+export function fetchEmails(userId: string) {
+  return request<{ emails: Array<Record<string, unknown>> }>(`/emails?userId=${encodeURIComponent(userId)}`);
 }

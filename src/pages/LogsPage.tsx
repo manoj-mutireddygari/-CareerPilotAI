@@ -1,19 +1,23 @@
 import { useEffect, useState } from 'react';
+import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { fetchLogs } from '../lib/api';
 import type { AutomationLog } from '../types/domain';
 
 export function LogsPage() {
+  const { user } = useAuth();
   const { notify } = useToast();
   const [logs, setLogs] = useState<AutomationLog[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchLogs()
+    if (!user?.uid) return;
+
+    fetchLogs(user.uid)
       .then((response) => setLogs(response.logs))
       .catch((error) => notify('error', error instanceof Error ? error.message : 'Unable to load logs.'))
       .finally(() => setLoading(false));
-  }, [notify]);
+  }, [notify, user?.uid]);
 
   return (
     <div className="space-y-5 pb-20">

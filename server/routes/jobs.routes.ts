@@ -1,11 +1,17 @@
 import { Router } from 'express';
 import { fetchGoogleJobs } from '../services/jobs.service';
-import { listCollection } from '../services/storage.service';
+import { listCollectionWhere } from '../services/storage.service';
 
 export const jobsRouter = Router();
 
-jobsRouter.get('/matched', async (_req, res) => {
-  const jobs = await listCollection('matched_jobs', 50);
+jobsRouter.get('/matched', async (req, res) => {
+  const userId = String(req.query.userId || '');
+  if (!userId) {
+    res.status(400).json({ error: 'userId is required' });
+    return;
+  }
+
+  const jobs = await listCollectionWhere('matched_jobs', 'userId', userId, 100);
   const seen = new Set<string>();
   const uniqueJobs = jobs.filter((job) => {
     const record = job as { applyLink?: string; company?: string; role?: string };
